@@ -1,0 +1,72 @@
+---
+title: "DescriptiveStats_CHS"
+author: "Jorden Patino"
+date: "2026-06-22"
+output: html_document
+---
+
+## Loading in Dataset
+```{r setup, include=FALSE}
+library(readr)
+CHS_cohortE_in_ <- read_csv("CHS_cohortE(in).csv")
+View(CHS_cohortE_in_)
+```
+
+## Determining variable types 
+```{r}
+CHS = CHS_cohortE_in_
+str(CHS)
+```
+
+## Converting characters to categorical variables
+```{r}
+CHS$townabbr = factor(CHS$townabbr)
+CHS$male = factor(CHS$male)
+CHS$race = factor(CHS$race)
+CHS$hisp = factor(CHS$hisp)
+CHS$asthma = factor(CHS$asthma)
+CHS$educ = factor(CHS$educ)
+CHS$BaseGasstove = factor(CHS$BaseGasstove)
+CHS$BasePets = factor(CHS$BasePets)
+CHS$ETS_base = factor(CHS$ETS_base)
+CHS$wheeze = factor(CHS$wheeze)
+str(CHS)
+```
+
+
+
+## Univariate Descriptive Stats for All Categorical Variables (Barplots)
+```{r}
+
+table(CHS$townabbr) ## count of people in each community 
+barplot(table(CHS$townabbr), main = 'Community')
+
+table(CHS$male)
+barplot(table(CHS$male), main = 'Sex')
+
+table(CHS$race)
+par(mar = c(4, 10, 4, 2))
+barplot(table(CHS$race), main = 'Race', horiz = TRUE, las = 1)
+
+table(CHS$hisp)
+barplot(table(CHS$hisp), main = 'Hispanicity')
+
+table(CHS$asthma)
+barplot(table(CHS$asthma), main = 'Asthma')
+
+table(CHS$educ)
+barplot(table(CHS$educ), main = 'Parental Education')
+
+table(CHS$BaseGasstove)
+barplot(table(CHS$BaseGasstove), main = 'Gas Stove in House')
+
+table(CHS$BasePets)
+barplot(table(CHS$BasePets), main = 'Pets in House')
+
+table(CHS$ETS_base)
+barplot(table(CHS$ETS_base), main = 'Second-Hand Smoke')
+
+table(CHS$wheeze)
+barplot(table(CHS$wheeze), main = 'Wheeze')
+```
+
