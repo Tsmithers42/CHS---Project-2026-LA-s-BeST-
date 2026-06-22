@@ -1,0 +1,34 @@
+---
+title: "first_plots"
+author: "Marcelo Perez Guzman"
+date: "2026-06-22"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## CHS Project, Table plotting
+
+This is the initial table plots of the CHS project. 
+
+#### Setup 
+```{r start, message=FALSE}
+# install tableone
+library(tableone)
+
+# get the dataset
+getwd()
+chs <- my_data <- read.csv("CHS_cohortE(in).csv")
+str(chs)
+```
+
+## Table 1
+
+This is what shows up after creating a table with the tableone package, without any modifications
+
+```{r first tables, echo=FALSE}
+CreateTableOne(data = chs)
+```
+
