@@ -2,11 +2,22 @@
 title: "first_plots"
 author: "Marcelo Perez Guzman"
 date: "2026-06-22"
-output: html_document
+output:
+  html_document: default
+  word_document: default
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{css, echo=FALSE}
+.Rtable1 { 
+  display: block;
+  max-height: 600px;
+  overflow-y: scroll;
+  overflow-x: scroll;
+}
 ```
 
 ## CHS Project, Table plotting
@@ -16,23 +27,63 @@ This is the initial table plots of the CHS project.
 #### Setup 
 ```{r start, message=FALSE}
 # install tableone
-library(tableone, crosstable)
+library(tableone)
+library(table1)
 
 # get the dataset
 getwd()
 chs <- my_data <- read.csv("CHS_cohortE(in).csv")
 str(chs)
+table(chs$race)
+chs$male <- factor(chs$male, levels=c(0,1), labels=c("Female", "Male"))
+chs$hisp <- factor(chs$hisp, levels=c("Hispanic", "Non-Hispanic", "Unknown or Missing"))
+chs$race <- factor(chs$race, levels=c("African American", "Asian", "Caucasian", "Mixed", "Others", "Unknown or Missing"))
 ```
 
 ## Table 1
 
-This is what shows up after creating a table with the tableone package, without any modifications
+This is what shows up after creating a table with the tableone package, which has the mean and the standard deviation of the variables
 
-```{r first table, echo=FALSE}
-CreateTableOne(data = chs)
+```{r tableone_pck, echo=FALSE}
+# Tableone package, includes mean and standard deviation
+myvars <- c("age", "male", "race", "hisp", "bmi", "educ", "pm25", "sulfate", "nitrate", "wheeze","fev1", "fvc")
+CreateTableOne(data = chs, vars = myvars)
 ```
 
-```{r second table}
-#c1 = crosstable(chs, c(educ), by = 'hisp', total="both", percent_pattern="{n} ({p_row})", percent_digits=1)
-#as_flextable(c1)
+This is using the table1 package instead of tableone, creates a publication ready table
+
+This table is on the demographics of the participants in the study
+```{r table1_pck, echo=FALSE}
+# table1 package, creates better visual tables
+
+label(chs$age) <- "Age"
+label(chs$male) <- "Sex"
+label(chs$race) <- "Race"
+label(chs$hisp) <- "Hispanicity"
+label(chs$bmi) <- "Body-Mass Index"
+label(chs$educ) <- "Education"
+label(chs$pm25) <- "PM25"
+label(chs$sulfate) <- "Sulfate"
+label(chs$nitrate) <- "Nitrate"
+label(chs$wheeze) <- "Wheeze"
+label(chs$fev1) <- "FEV1"
+label(chs$fvc) <- "FVC"
+label(chs$ec) <- "Elemental Carbon"
+label(chs$dust) <- "Dust"
+
+table1(~ age + male + race + hisp + bmi + educ | townabbr, data=chs, render.continuous = c(. = "Mean (SD)"))
+
+
+# + pm25 + sulfate + nitrate + wheeze + fev1 + fvc
+
 ```
+
+
+
+
+
+And this is a table of the polution levels in each town
+```{r, echo=FALSE}
+table1(~ pm25 + sulfate + nitrate + wheeze + fev1 + fvc + dust + ec | townabbr, data=chs, render.continuous = c(. = "Mean (SD)"))
+```
+
