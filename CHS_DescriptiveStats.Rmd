@@ -25,7 +25,8 @@ CHS$male = factor(CHS$male)
 CHS$race = factor(CHS$race)
 CHS$hisp = factor(CHS$hisp)
 CHS$asthma = factor(CHS$asthma)
-CHS$educ = factor(CHS$educ)
+CHS$educ = factor(CHS$educ, levels = 1:5, labels = c('< Grade 12','Grade 12',
+   'Some Post High-School', 'College', 'Some Post-Grad'))                         
 CHS$BaseGasstove = factor(CHS$BaseGasstove)
 CHS$BasePets = factor(CHS$BasePets)
 CHS$ETS_base = factor(CHS$ETS_base)
@@ -55,7 +56,8 @@ table(CHS$asthma)
 barplot(table(CHS$asthma), main = 'Asthma')
 
 table(CHS$educ)
-barplot(table(CHS$educ), main = 'Parental Education')
+par(mar = c(7, 4, 4, 2) + 0.01)
+barplot(table(CHS$educ), main = 'Parental Education', las = 2, cex.names = .6)
 
 table(CHS$BaseGasstove)
 barplot(table(CHS$BaseGasstove), main = 'Gas Stove in House')
@@ -68,5 +70,16 @@ barplot(table(CHS$ETS_base), main = 'Second-Hand Smoke')
 
 table(CHS$wheeze)
 barplot(table(CHS$wheeze), main = 'Wheeze')
+```
+
+## Bivariate Descriptive Stats for all Categorical Variables 
+```{r}
+boxplot(CHS$latitude ~ CHS$townabbr, main = 'Latitude by Town', xlab = 'Town', ylab = 'Latitude', col = 'steelblue') ## quantitative vs. categorical (side-by-side boxplot)
+
+boxplot(CHS$height ~ CHS$male, main = 'Height by Sex', xlab = 'Gender',
+        ylab = 'Height', col = 'steelblue')
+
+mosaicplot(CHS$educ ~ CHS$hisp, xlab = 'Parental Education', 
+           ylab = 'Ethnicity', col = 'gray90', las=1, main = 'Ethnicity vs. Parental Education') ## categorical vs. categorical 
 ```
 
