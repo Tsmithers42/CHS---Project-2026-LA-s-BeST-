@@ -16,7 +16,7 @@ This is the initial table plots of the CHS project.
 #### Setup 
 ```{r start, message=FALSE}
 # install tableone
-library(tableone)
+library(tableone, crosstable)
 
 # get the dataset
 getwd()
@@ -28,7 +28,11 @@ str(chs)
 
 This is what shows up after creating a table with the tableone package, without any modifications
 
-```{r first tables, echo=FALSE}
+```{r first table, echo=FALSE}
 CreateTableOne(data = chs)
 ```
 
+```{r second table}
+#c1 = crosstable(chs, c(educ), by = 'hisp', total="both", percent_pattern="{n} ({p_row})", percent_digits=1)
+#as_flextable(c1)
+```
