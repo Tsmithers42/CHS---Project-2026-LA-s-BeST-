@@ -87,3 +87,14 @@ And this is a table of the polution levels in each town
 table1(~ pm25 + sulfate + nitrate + wheeze + fev1 + fvc + dust + ec | townabbr, data=chs, render.continuous = c(. = "Mean (SD)"))
 ```
 
+## Stratified stuff
+
+Things to stratify by:
+- race/hisp + lung capacity
+- ETS secondhand smoke + lung capacity
+- BMI + lung capacity
+- race + BMI
+- race + secondhand smoke
+- plants + lung capacity
+- homebuilt + race/hisp
+- homebuilt + lung capacity
