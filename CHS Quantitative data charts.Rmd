@@ -1,0 +1,59 @@
+---
+title: "CHS"
+author: "T Smith"
+date: "2026-06-22"
+output: html_document
+---
+
+## R Markdown
+
+More descriptive stats for data set CHS project
+
+##Importing data
+
+```{r}
+read.csv("CHS_cohortE(in).csv")
+data <- read.csv("CHS_cohortE(in).csv")
+head(data)
+``` 
+## Quantitative data charts
+```{r}
+numeric_data <- data[sapply(data, is.numeric)]
+
+for (col in names(numeric_data)) {
+  hist(numeric_data[[col]],
+       main = paste("Histogram Of", col),
+       xlab = col,
+       col = "lightblue",
+       border = "black")
+}
+## This code will generate a histogram for every numeric column when you knit 
+```
+
+```{r}
+numeric_data <- data[sapply(data, is.numeric)]
+
+boxplot(numeric_data,
+        main = "Boxplots of Numeric Variables",
+        las = 2) # rotates labels
+## Boxplots are great for spotting outliers
+```
+
+install.packages("ggplot2")
+
+
+
+```{r}
+library(ggplot2)
+
+numeric_data <- data[sapply(data, is.numeric)]
+
+for (col in names(numeric_data)) {
+print(
+  ggplot(data, aes_string(x = col)) + 
+  geom_histogram(fill = "blue", bins = 30) + 
+  ggtitle(paste("Histogram of", col))
+)
+}
+## There are cleaner plots with 'ggplot2'
+```
