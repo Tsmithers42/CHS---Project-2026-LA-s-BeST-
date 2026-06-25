@@ -76,7 +76,12 @@ barplot(table(CHS$wheeze), main = 'Wheeze')
 
 ## Bivariate Descriptive Stats for all Categorical Variables 
 ```{r}
-boxplot(CHS$latitude ~ CHS$townabbr, main = 'Latitude by Town', xlab = 'Town', ylab = 'Latitude', col = 'steelblue') ## quantitative vs. categorical (side-by-side boxplot)
+boxplot(CHS$nitrate ~ CHS$townabbr, main = 'Nitrate Concentration by Town', xlab = 'Town', ylab = 'Nitrate Concentration', col = 'steelblue') ## quantitative vs. categorical (side-by-side boxplot)
+
+boxplot(CHS$fev1 ~ CHS$male, main = 'Forced Expiratory Volume (in 1 sec) by Gender', xlab = 'Gender', ylab = 'FEV1', col = 'steelblue') 
+
+boxplot(CHS$pm25 ~ CHS$asthma, main = 'Particulate Matter Concentration by Asthma', xlab = 'Asthma', ylab = 'Particulate Matter Concentration', col = 'steelblue') 
+
 
 boxplot(CHS$height ~ CHS$male, main = 'Height by Sex', xlab = 'Gender',
         ylab = 'Height', col = 'steelblue')
