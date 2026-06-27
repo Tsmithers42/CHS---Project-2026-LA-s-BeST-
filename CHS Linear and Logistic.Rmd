@@ -1,0 +1,78 @@
+---
+title: "CHS Linear and Logistic Charts"
+author: "T Smith"
+date: "2026-06-26"
+output: html_document
+---
+
+```{r}
+chs_data <- read.csv("CHS_cohortE(in).csv")
+str(chs_data)
+```
+```{r}
+ls()
+
+names(data)
+```
+
+```{r}
+## Convert Binary/Categorical Variables first
+
+library(dplyr)
+
+chs_data %>%
+  dplyr::mutate(across(c(townabbr, male, race, hisp, asthma, educ, BaseGasstove, BasePets, ETS_base, wheeze), ~as.factor(.x)))
+
+str(chs_data)
+```
+
+```{r}
+## Linear Regression (Continuous Outcomes)
+
+linear_model <- lm(fev1 ~ age + bmi + weight + 
+                     height + HomeBuilt + fvc +
+                     pm25 + ec + sulfate + 
+                     nitrate + latitude,
+                   data = chs_data)
+summary(linear_model)
+plot(linear_model)
+```
+
+```{r}
+## Logistic Regression (Binary Outcome)
+
+logistic_model <- glm(asthma ~ latitude +
+                        BaseGasstove + BasePets
+                      + wheeze + ETS_base + educ + 
+                        hisp + race + male +
+                        townabbr,
+                      data = chs_data,
+                      family = binomial,
+                      na.action = na.exclude)
+
+summary(logistic_model)
+plot(logistic_model)
+```
+```{r}
+## Predicted Probabilites & Odds Ratios (IMPORTANT)
+
+chs_data$predicted_prob <- predict(logistic_model, type = "response")
+
+exp(coef(logistic_model))
+
+chs_data <- na.omit(chs_data)
+```
+```{r}
+## Clean model with ONLY continuous predictors in one model
+
+linear_model_clean <- lm(fev1 ~ age+ bmi + weight + height +
+                           HomeBuilt + fvc + pm25 + ec + sulfate 
+                         + nitrate + latitude,
+                         data = chs_data)
+
+summary(linear_model_clean)
+plot(linear_model_clean)
+```
+
+
+
