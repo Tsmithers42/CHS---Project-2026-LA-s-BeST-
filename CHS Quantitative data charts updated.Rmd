@@ -59,6 +59,7 @@ for (v in vars) {
 
 vars <- c("male", "stove", "pets")
 
+summary(vars)
 ```
 
 ```{r} 

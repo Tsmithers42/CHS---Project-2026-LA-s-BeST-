@@ -9,11 +9,6 @@ output: html_document
 chs_data <- read.csv("CHS_cohortE(in).csv")
 str(chs_data)
 ```
-```{r}
-ls()
-
-names(data)
-```
 
 ```{r}
 ## Convert Binary/Categorical Variables first
@@ -143,8 +138,56 @@ xlab = "Nitrate", ylab = "BMI")
 legend("topright", legend=levels(chs_data2$townabbr), col=1:2,
        pch=1)
 
+plot(chs_data2$pm25, chs_data2$age, col = 
+       as.factor(chs_data2$townabbr),
+     main = "PM2.5 vs Age",
+     xlab = "PM2.5", ylab = "Age")
+legend("topright", legend=levels(chs_data2$townabbr), col=1:2,
+       pch=1)
 
+plot(chs_data2$nitrate, chs_data2$age, col =
+       as.factor(chs_data2$townabbr),
+     main = "Nitrate vs Age",
+     xlab = "Nitrate", ylab = "Age")
+legend("topright", legend=levels(chs_data2$townabbr), col=1:2,
+       pch=1)
 ```
+```{r}
+## The last analysis ill try is actually combining into regression to ask: Does pollution affect outcome differently by town?
+model <- lm(bmi ~ pm25 * townabbr + nitrate * townabbr + age + male + latitude, data = chs_data2)
+summary(model)
+
+## The code above tells us that pm25::TownB (estimate: 1.1235, p =0.755) -> the effect of PM2.5 on BMI is slightly more positive in town SA than the reference town, making the difference insignificant. TownB::Nitrate (estimate: -5.5969, p = 0.662) -> the effect of nitrate on BMI is weaker (more negative) in town SA, making the difference insignificant.
+
+## The main pollutant effects: the values im about to explain represent the effect of the pollutants specifically in the reference town (ML not SA). PM2.5 (estimate: -0.7389, p = 0.824) -> Higher PM2.5 is tied to a tiny decrease in BMI, this is insignificant. Nitrate (estimate: 11.9404, p = 0.291) -> Higher nitrate is tied to an increase in BMI, this is insignificant.
+
+## Overall R-squared(0.0309) -> this model only explains about 3% of the variance in BMI. Model p-value(0.0663) -> the overall model is not significant at the standard 5% level, though it shows marginal significance at the 10% level. So we shall run more test to find significance within our towns and variables. 
+
+## after running these test we can now clearly see that there are no statistically significant association between PM2.5 or Nitrate exposure and BMI after adjusting for demographic variables. In addition, interaction terms between town and pollutant levels were not significant which suggests that the relationship between pollution & BMI does not differ across towns. This is very normal considering BMI is not strongly driven by air pollution ; its more driven by diet, lifestyle, & genetics. 
+```
+```{r}
+## While our models aren't wrong, it's just not the best out come variable. So we now compare a way stronger variable FEV1 for more real effects, meaningful correlations, and better R squared
+lm(fev1~ pm25 * townabbr + nitrate * townabbr + age + male + latitude, data = chs_data2)
+
+## INFO still up for interpretation
+```
+```{r}
+## Now we are switching our Models to FEV1 instead of BMI
+
+model_fev1 <- lm(fev1 ~ pm25 * townabbr + nitrate * townabbr + age + male + latitude,
+                 data = chs_data2)
+summary(model_fev1)
+
+## The code first test whether the impact of pollutants on lung function (fev1) differs between town SA & ML. pm25::townabbrSA (estimate: 690.34, p-value = 0.0845) -> this is marginally significant at the 10% level (indicated by the . code), which suggests that the negative effect of PM2.5 on lung function is weakened (moved in the positive direction by 690.34 unit) specifically in SA compared to ML. townabbrSA:nitrate (estimate: -2273.19, p = 0.1100) -> this interaction is not statistically significant, there is no strong evidence that the effect of nitrate differs between SA & ML.
+
+## The main pollutant effects values represent the impact of the pollutants specifically within SA and ML. nitrate (estimate: 2427.65, p = 0.0535) -> this is Marginally significant  at the 10% level (.). In ML, higher nitrate levels are associated w a baseline increase in FEV1. pm25 (estimate: -577.31, p = 0.1179) -> while direction is negative (higher PM2.5 relates to lower lung function), this effect is not statistically significant at standard thresholds
+
+## Town Differences:townabbrSA (estimate:-4352.96, p = 0.2703) -> there is no statistically significant difference in baseline FEV1 levels between town SA and ML when all pollutant levels are at 0.      
+
+## the strongest drivers of lung function is this dataset are demographic factors, not the environment: male(estimate: 899.61, p < 2 x 10 ^ -16) -> Highly significant, males have significantly higher FEV1 levels than females by roughly 900 units. age (estimate: 337.03, p = 8.56 X 10^ -7) -> Highly Significant, for every year of age FEV1 increase by 337 units.
+```
+
+
 
 
 
