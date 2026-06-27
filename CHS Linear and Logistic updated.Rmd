@@ -1,0 +1,150 @@
+---
+title: "CHS Linear and Logistic Charts"
+author: "T Smith"
+date: "2026-06-26"
+output: html_document
+---
+
+```{r}
+chs_data <- read.csv("CHS_cohortE(in).csv")
+str(chs_data)
+```
+```{r}
+ls()
+
+names(data)
+```
+
+```{r}
+## Convert Binary/Categorical Variables first
+
+library(dplyr)
+
+chs_data %>%
+  dplyr::mutate(across(c(townabbr, male, race, hisp, asthma, educ, BaseGasstove, BasePets, ETS_base, wheeze), ~as.factor(.x)))
+
+str(chs_data)
+```
+
+```{r}
+## Linear Regression (Continuous Outcomes)
+
+linear_model <- lm(fev1 ~ age + bmi + weight + 
+                     height + HomeBuilt + fvc +
+                     pm25 + ec + sulfate + 
+                     nitrate + latitude,
+                   data = chs_data)
+summary(linear_model)
+plot(linear_model)
+```
+
+```{r}
+## Logistic Regression (Binary Outcome)
+
+logistic_model <- glm(asthma ~ latitude +
+                        BaseGasstove + BasePets
+                      + wheeze + ETS_base + educ + 
+                        hisp + race + male +
+                        townabbr,
+                      data = chs_data,
+                      family = binomial,
+                      na.action = na.exclude)
+
+summary(logistic_model)
+plot(logistic_model)
+```
+```{r}
+## Predicted Probabilites & Odds Ratios (IMPORTANT)
+
+chs_data$predicted_prob <- predict(logistic_model, type = "response")
+
+exp(coef(logistic_model))
+
+chs_data <- na.omit(chs_data)
+```
+```{r}
+## Clean model with ONLY continuous predictors in one model
+
+linear_model_clean <- lm(fev1 ~ age+ bmi + weight + height +
+                           HomeBuilt + fvc + pm25 + ec + sulfate 
+                         + nitrate + latitude,
+                         data = chs_data)
+
+summary(linear_model_clean)
+plot(linear_model_clean)
+```
+
+```{r}
+## Moving from here we focus on the pollutant variables pm2.5 & nitrate,as well as crucial variables that we think plays a role in the found results (age, bmi, educ, male, latitude). Towns: Santa Barbara - having the most amount of subjects tested, lowest pm2.5 mean(8.68(0.399)), & lowest mean Nitrate and Mira Loma- having the highest average of pm2.5 (17.5(0.485)), lowest number of subjects tested, & largest mean nitrate == we are not sure 100% if these are they only things we will be testing going forward, just an attempt to see correlation between obvious factors ~ T Smith
+
+## we start by sectioning off the towns we want and  running several correlation tests
+
+chs_data$townabbr <- as.factor(chs_data$townabbr)
+chs_data2 <- subset(chs_data, townabbr %in% c("SA", "ML"))
+
+## Continuous Vars = boxplots + t-test
+
+boxplot(pm25 ~ townabbr, data=chs_data2, main= "PM2.5 by Towns")
+boxplot(nitrate ~ townabbr, data=chs_data2, main= "Nitrate by Towns")
+boxplot(age ~ townabbr, data=chs_data2)
+boxplot(bmi ~ townabbr, data=chs_data2)
+boxplot(latitude ~ townabbr, data=chs_data2)
+
+t.test(pm25 ~ townabbr, data=chs_data2)
+t.test(nitrate ~ townabbr, data=chs_data2)
+t.test(age ~ townabbr, data=chs_data2)
+t.test(bmi ~ townabbr, data=chs_data2)
+t.test(latitude ~ townabbr, data=chs_data2)
+
+## this should tell us whether SA and ML are significantly different for each variable
+```
+
+```{r}
+## Binary Variable (male) vs towns -> Proportion test
+
+table(chs_data2$townabbr, chs_data2$male)
+prop.table(table(chs_data2$townabbr, chs_data2$male), margin=1)
+
+##since trying to filter the data to a chi-square test, the possible for an incorrect answer kept appearing. So we will now try to use the Fisher's Exact Test since its a smaller data set now that we are only looking at 2 towns and not all 8(i think its 8 lol)
+
+fisher.test(table(chs_data2$townabbr, chs_data2$male))
+
+```
+```{r}
+## Now we test Correlation WITHIN each town (the good stuff)
+
+## First we split data by town
+TownA <- subset(chs_data2, townabbr == "ML")
+TownB <- subset(chs_data2, townabbr == "SA")
+
+## Now we run a Correlation Matrix (with ONLY continuous vars)
+varsC <- c("pm25", "bmi", "age", "nitrate", "latitude")
+cor(TownA[, varsC], use="complete.obs")
+cor(TownB[, varsC], use="complete.obs")
+
+## Add Visual Correlation (for better interpretation)
+pairs(TownA[, varsC], main="ML Relationships")
+pairs(TownB[, varsC], main="SA Relationships")
+```
+```{r}
+## I now would like to see if Scatter plots by Town vs each variable would be better for interpretation. We start with PM2.5 vs BMI by Town then, Nitrate vs BMI by Town, PM2.5 vs Age, and finally Nitrate vs Age by Town
+plot(chs_data2$pm25, chs_data2$bmi, col = as.factor(chs_data2$townabbr),
+     main = "PM25 vs BMI by Towns",
+     xlab = "PM2.5", ylab = "BMI")
+legend("topright", legend=levels(chs_data2$townabbr), col=1:2,
+       pch=1)
+## in plot(...) above I wrap the Column in as.factor() to tell R to treat the abbreviations in the code as categories and assign a color index to each
+
+## Now we continue
+plot(chs_data2$nitrate, chs_data2$bmi, col = 
+as.factor(chs_data2$townabbr),
+main = "Nitrate vs BMI by Towns",
+xlab = "Nitrate", ylab = "BMI")
+legend("topright", legend=levels(chs_data2$townabbr), col=1:2,
+       pch=1)
+
+
+```
+
+
+
