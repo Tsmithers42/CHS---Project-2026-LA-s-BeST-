@@ -1,0 +1,128 @@
+---
+title: "linear regression ~ FEV"
+author: "T Smith"
+date: "2026-07-01"
+output: html_document
+---
+
+```{r}
+chs_data <- read.csv("CHS_cohortE(in).csv")
+```
+
+## I'm going to run an linear regression model for outcome: FEV w/ predictors: age, height, male
+```{r regression analysis}
+regressionfev <- lm(fev1 ~ age + male + height, data = chs_data)
+
+summary(regressionfev)
+```
+
+## Age estimate is 132.465, Male is 301.365, and Height is 46.231. This means for every year of age FEV increases by about 132.5 units, on average males have a FEV score of about 301.4 units higher than females, and for every 1 unit increase in height FEV increases by about 46.2 units. Looking at the R Squared (0.5738), which explains our effect size, you see the model only explains about 57.4% of the variance in FEV. The intercept for if all three variables were 0 is -6160.059, I think this is irrelevant since you can not really have 0 for height or age
+
+## Now i'm going to run each pollutant against the outcome FEV along with age, male, height to see if each pollutant is associated with FEV.
+```{r single pollutant models}
+model_pm25 <- lm(fev1 ~ age + height + male + pm25, data = chs_data)
+model_nitrate <- lm(fev1 ~ age + height + male + nitrate, data = chs_data)
+model_sulfate <- lm(fev1 ~ age+ height + male + sulfate, data = chs_data)
+model_ec <- lm(fev1 ~ age + height + male + ec, data = chs_data)
+
+summary(model_pm25)
+summary(model_nitrate)
+summary(model_sulfate)
+summary(model_ec)
+```
+
+## From the looks of the models, PM2.5 has a estimate of -7.450 which i think mean more pm2.5 = lower FEV score/ result. Nitrate has a estimate of -9.330 meaning more nitrate = lower FEV. Sulfate has a estimate of -99.11 meaning more sulfate = lower FEV. Finally, Elemental Carbon has a estimate of -232.720 also meaning more elemental carbon = less FEV. This just goes to show that each pollutant definitely is associated with FEV score/results
+
+
+## Now I will create a full model with all the pollutants and variables (age, height, male) to see which is the strongest predictor that may be controlling the others. This will be one of the main results for my poster.
+```{r full model compraison}
+Full_model <- lm(fev1 ~ age + height + male + pm25 + nitrate + sulfate + ec, data = chs_data)
+summary(Full_model)
+```
+
+## In the model we see Age, Height, Male, & Nitrate all have positive significant association. Age and height both are positive predictors, for every unit increase in height FEV increases by about 46.8 units; this is expected since older and larger people have larger lung capacity. Nitrate shows a significant positive association (~261.3), sometimes in environmental studies this is due to col-linearity (pollutants being highly correlated with each other) which can flip the sign of a coefficient. Male is binary and is associated with an average increase of 295.4 units in FEV compared to females, this holds all other variables constant.
+
+## Sulfate, PM2.5, & Elemental Carbon has a different story. Sulfate has a significant negative impact, for every unit increased in sulfate levels decreases FEV by about 679.0 units (KEY FINDING). EC and PM2.5: EC in this model doesn't really have a statistically significant effect on FEV in this model. PM2.5 has a p-value of 0.0505 which is right on the line of significance, it does have a positive trend but isn't strictly significant here
+
+## So from my understanding Sulfate may be the strongest predictor here, with male (sex) in close following
+
+## Now I will create a clean comparison of the coefficients so im actually able to see the strongest pollutant or variable
+```{r strongest factor}
+coef_scaled <- chs_data
+coef_scaled[, c("pm25", "nitrate", "sulfate", "ec")] <- scale(coef_scaled[, c("pm25", "nitrate", "sulfate", "ec")])
+
+
+model_scaled <- lm(fev1 ~ age + height + male + sulfate + nitrate + pm25 + ec, data = coef_scaled)
+summary(model_scaled)
+```
+
+## In this model the one with the largest absolute coefficient = strongest positive predictor, smallest = strongest negative predictor. Looking at the results of the model I can say the model as a whole is very significant; age, height, male, sulfate, & nitrate all have stronger statistical relation to FEV. Male being 295.387 makes it the strongest positive predictor of FEV, while Sulfate being -165.467 makes it the strongest negative predictor of FEV.
+
+## I will now create a few different graphs to show my findings.
+```{r graphing pt1 }
+## Graph 1 - Scatter plot with Regression lines 
+library(ggplot2)
+
+ggplot(chs_data, 
+       aes(x = pm25, 
+           y = fev1)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", color = "pink") +
+  labs(title = "PM2.5 vs FEV", 
+       x = "PM2.5", 
+       y = "FEV")
+
+
+## This scatter plot shows that there is a very weak correlation between PM2.5 & FEV. The regression line (pink line) is nearly horizontal, there are some noticeable outliers at the top and bottom of FEV range that sit far from the main cluster, and there are alot of data points around PM2.5 levels 7.5 & 15.0 and a veritcal spread of points that tell FEV varies significantly regardless of PM2.5 levels. This means other factors (age, height, second hand smoke, etc.) most likely have a stronger effect on lung function.
+
+## Since from my previous test we saw male and sulfate were the strongest (neg & pos) predictors the next scatter plots will be of them.
+ggplot(chs_data, aes(x = male, y = fev1)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", color = "purple") +
+  labs(title = "Male vs FEV", x = "Male", y = "FEV")
+##
+
+ggplot(chs_data, aes(x = sulfate, y = fev1)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", color = "blue") +
+  labs(title = "Sulfate vs FEV", x = "Sulfate", y = "FEV")
+##
+
+ggplot(chs_data, aes(x = ec, y = fev1)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", color = "orange") +
+  labs(title = "Elemental Carbon vs FEV", x = "Elemental Carbon", y = "FEV")
+##
+```
+
+## The next graph I will try is Coefficient Comparison
+```{r graphing pt2}
+library(broom)
+library(ggplot2)
+
+coef_scaled <- tidy(model_scaled)
+pollutant_coef <- coef_scaled[coef_scaled$term %in% c("pm25", "nitrate", "sulfate", "ec"), ]
+
+ggplot(pollutant_coef, aes(x = term, y = estimate)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Pollutant Effects on FEV",
+       x = "Pollutant",
+       y = "Standardized Coefficient")
+```
+
+## From this graph you can see sulfates bar going down (negative) meaning this pollutant reduces FEV, it is also the longest bar meaning its the strongest predictor.
+
+## Though I believe my first 2 graphs give good visual answers i will try one more graph, Adjusted Predictions
+```{r graphing pt3}
+library(ggeffects)
+
+pred_pm25 <- ggpredict(Full_model, terms = "pm25")
+plot(pred_pm25) + labs(title = "Adjusted Effect of PM2.5 on FEV")
+
+## Checking model assumptions
+par(mfrow=c(2,2))
+plot(Full_model)
+```
+
+## The first picture chart shows an upward slope(black line) indicating a positive relationship. As PM2.5 increase FEV levels are predicted to increase (according to this model). The grey area represents 95% confidence interval (uncertainly), the interval is most narrow in the middle, narrow bands = more data available, the grey widens at significantly on the edges (maybe high uncertainty?). On the second page my model is checked to see if it meets statistical assumptions. After reading each graph i can conclude linearity is met, my error terms are normally distributed, varinace is constant, & there are no outliers warping the model; meaning I can trust the positive association found between PM2.5 and FEV.
+```
