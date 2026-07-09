@@ -1,0 +1,72 @@
+---
+title: "Pollutant w/ strongest effect FVC"
+author: "T Smith"
+date: "2026-07-09"
+output: html_document
+---
+
+
+```{r}
+## I am curious what pollutant has the strongest effect on FVC. 
+chs_data <- read.csv("CHS_cohortE(in).csv")
+```
+
+```{r compare pollutants}
+## First ill load my libraries needed
+library(dplyr)
+
+## Now ill scale my pollutants to standardize them 
+analyzed_data <- chs_data 
+  
+
+## Now Fit the multiple linear regression model (including any necessary health cofounders like height, age, smoking status, etc.)
+model <- lm(fvc ~ pm25 + ec + sulfate + nitrate + age + height + male, data = analyzed_data)
+summary(model)
+
+## I'll now see which is the strongest predictor by reading the Estimate column from the summary(model) output. I think the one with largest negative value is sulfate (-348.111) & largest positive value is age (142.079). i may have read it wrong,but since neither of their p-values meet the 5% then I'm tnot sure if these are by chance or corellate because of the other factors. The strongest predictor overall is male. 
+
+## Now I will try to extract the absolute standardized coefficients using:
+abs_coefficients <- abs(coef(model)[-1])
+strongest_pollutant <- names(which.max(abs_coefficients))
+print(strongest_pollutant)
+```
+
+```{r plot pollutant effects}
+## I want to change my numbers to a visualization, start with libraries:
+library(ggplot2)
+library(broom)
+library(dplyr)
+
+## Extract model coefficients, standardized errors, + confidence intervals
+model_results <- tidy(model, conf.int = TRUE) %>%
+  
+## Exclude the intercept to focus only on the pollutants
+filter(term != "(Intercept)") %>%
+  
+## Giving pollutants better names for charts axis
+  mutate(
+    term = case_when(
+      term == "pm25" ~ "PM2.5",
+      term == "ec" ~ "Elemental Carbon",
+      term == "sulfate" ~ "Sulfate",
+      term == "nitrate" ~"Nitrate",
+      TRUE ~ term
+    )
+  )
+  
+## Now I will attempt to create a Forest Plot
+ggplot(model_results, aes(x = estimate, y = reorder(term, estimate))) +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "red", linewidth = 0.8) + 
+  geom_errorbar(aes(xmin = conf.low, xmax = conf.high), height = 0.2,
+                color = "darkblue", linewidth = 1, orientation = "y") +                                 geom_point(color = "darkblue", size = 4) + 
+                   labs(                                                               title = "Effects of Pollutants on FVC",
+                                                                                       subtitle = "Ordered from most Positive to most Negative",
+                                                                                       x = "Regression Coefficient", 
+                                                                                       y = "Pollutant"
+                                                                                     ) +
+                                                                                    theme_minimal(base_size = 14) +
+                                                                                    theme(
+                    plot.title = element_text(face = "bold", hjust = 0.5),
+                    plot.subtitle = element_text(hjust = 0.5),                        panel.grid.minor = element_blank()
+)
+```

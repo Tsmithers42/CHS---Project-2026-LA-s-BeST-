@@ -1,0 +1,74 @@
+---
+title: "FVC vs Sulfate by Male"
+author: "T Smith"
+date: "2026-07-09"
+output: html_document
+---
+
+```{r}
+chs_data <- read.csv("CHS_cohortE(in).csv")
+```
+
+## Since I have now ran signifcance and strongest predictor test, i'll now run correlations between sulfate (neg predictor) vs FEV & male (pos predictor) vs FVC
+```{r}
+library(ggplot2)
+library(dplyr)
+
+chs_sex <- chs_data %>% mutate(male = as.factor(male))
+
+ggplot(chs_sex, aes(x = sulfate, y = fvc, color = male, shape = male)) +
+  geom_point(alpha = 0.5, size = 2) +
+  geom_smooth(method = "lm", se = FALSE, linewidth = 1.2) +
+  scale_color_manual(values = c("blue", "pink")) +
+  theme_minimal() +
+  labs(
+    title = "Impact of Sulfate & Male vs FVC",
+    x = "Sulfate Level",
+    y = "FVC (ml) ",
+    color = "male",
+    shape = "male"
+  ) +
+facet_wrap(~male)
+```
+
+## Looking at the plots side by side male (pink 1) has an overall higher baseline FEV than female(blue 0). The points on pink sit visually closer to 5000ml than blue (closer to 4000ml). Both groups show a negative relation between sulfate and FEV (downward slopes). Sulfate levels rise, lung capacity (FVC) slightly drops for everyone. The regression lines does not look as parallel as the ones in FEV, and males line slopes down more than female.
+
+```{r boxplot- male}
+ggplot(chs_data, aes(x = factor(male), y =fvc, fill = factor(male))) +
+  geom_boxplot() +
+  labs(
+    title = "FVC Dispribution by Male (sex)",
+    x = "Male (Sex)",
+    y = "FVC (ml)"
+  )
+```
+## this box plot shows male(sex) in comparison to FVC alone. Males average around 5000 or a little under it, while female averages around 4000 or slightly below it.
+
+```{r scatter plot- Sulfate}
+ggplot(chs_data, aes(x = sulfate, y =fvc)) +
+  geom_point(alpha = 0.5, color = "purple") +
+  geom_smooth(method = "lm", color = "orange", se = TRUE) +
+  labs(
+    title = "FVC vs Sulfate Level",
+    x = "Sulfate Level",
+    y = "FVC (ml)"
+)
+```
+
+## With this scatter plot i notice the regression line slightly slopes down from left to right, showing that as sulfate levels increase = FVC levels tend to slightly decrease. Looking at the points being wide spread between 0.9 to 1.8 ug/m^3 and slope being almost flat I would say while sulfate is a statistically significant predictor in the model it doesnt explain all the massive variation in lung capacity (FVC) alone.
+
+## To see how the downward slope shows for male vs female i'll make a plot comparing the 2
+```{r Sulfate & Male}
+ggplot(chs_data, aes(x = sulfate, y = fvc, color = factor(male))) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", se = TRUE) +
+  labs(
+    title = "FVC vs Sulfate Level by Male (sex)",
+    x = "Sulfate Level (ug/m^3)",
+    y = "FVC (ml)",
+    color = "Male (0 = female, 1 = male)"
+  )
+```
+
+## Looking at the new lines, they are pretty parallel but female does make a very slight downward slope as you get to the right side. I think that sulfate may impact FVC in females just a tad bit more than males, though it is more likely for males to have more lung capacity (FVC). 
+
